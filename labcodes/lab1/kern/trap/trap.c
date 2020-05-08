@@ -49,10 +49,13 @@ idt_init(void) {
 
      extern uintptr_t __vectors[];
      for (int i=0; i<256; i++) {
-         if (i != T_SWITCH_TOK)
-            SETGATE(*(idt+i), 0, GD_KTEXT, *(__vectors+i), DPL_KERNEL);
-         else
-            SETGATE(*(idt+i), 0, GD_KTEXT, *(__vectors+i), DPL_USER);        
+         if (i != T_SWITCH_TOK) {
+             SETGATE(*(idt+i), 0, GD_KTEXT, *(__vectors+i), DPL_KERNEL);
+         }
+         else {
+             SETGATE(*(idt+i), 0, GD_KTEXT, *(__vectors+i), DPL_USER);
+         }
+                 
      }
      lidt(&idt_pd);
 }
@@ -156,7 +159,7 @@ trap_dispatch(struct trapframe *tf) {
          * (2) Every TICK_NUM cycle, you can print some info using a funciton, such as print_ticks().
          * (3) Too Simple? Yes, I think so!
          */
-        extern volatile size_t ticks;
+        extern size_t ticks;
         ticks = (++ticks) % TICK_NUM;
         if (!ticks)
             print_ticks();
