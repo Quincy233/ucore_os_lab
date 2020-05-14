@@ -178,7 +178,7 @@ trap_dispatch(struct trapframe *tf) {
                 : 
                 : "i"(T_SWITCH_TOK)
             );
-            print_trapframe();    
+            print_trapframe(tf);    
         }
         else if(c == "3"){
             asm volatile (
@@ -188,7 +188,7 @@ trap_dispatch(struct trapframe *tf) {
                 : 
                 : "i"(T_SWITCH_TOU)
             );
-            print_trapframe();
+            print_trapframe(tf);
         }
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
