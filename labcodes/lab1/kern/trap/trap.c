@@ -171,11 +171,45 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
+        if (c == "0"){
+            asm volatile (
+                "int %0 \n"
+                "movl %%ebp, %%esp \n"
+                : 
+                : "i"(T_SWITCH_TOK)
+            );           
+        }
+        elif(c == "3"){
+            asm volatile (
+                "sub $0x8, %%esp \n"
+                "int %0 \n"
+                "movl %%ebp, %%esp"
+                : 
+                : "i"(T_SWITCH_TOU)
+            );
+        }
         break;
     //LAB1 CHALLENGE 1 : YOUR CODE you should modify below codes.
     case T_SWITCH_TOU:
+        if (tf->tf_cs != USER_CS){
+            struct trapframe switchk2u;
+            switchk2u = *tf;
+            switchk2u.tf_cs = USER_CS;
+            switchk2u.tf_ds = switchk2u.tf_es = switchk2u.tf_ss = USER_DS;
+            switchk2u.tf_eflags |= FL_IOPL_MASK;
+            switchk2u.tf_esp = (uint32_t)tf + sizeof(struct trapframe) - 8;
+            *((uint32_t *)tf - 1) = (uint32_t)&(switchk2u);
+        }
+        break;
     case T_SWITCH_TOK:
-        panic("T_SWITCH_** ??\n");
+        if(tf->tf_cs != KERNEL_CS){
+            tf->tf_cs = KERNEL_CS;
+            tf->tf_ds = tf->tf_es = KERNEL_DS;
+            tf->tf_eflags &= ~FL_IOPL_MASK;
+            struct trapframe *swtichu2k = (struct trapframe *)(tf->tf_esp - (sizeof(struct trapframe) - 8));
+            __memmove(swtichu2k, tf, sizeof(struct trapframe) - 8);
+            *((uint32_t *)tf - 1) = (uint32_t)swtichu2k;
+        }
         break;
     case IRQ_OFFSET + IRQ_IDE1:
     case IRQ_OFFSET + IRQ_IDE2:
