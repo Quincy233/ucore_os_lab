@@ -171,7 +171,7 @@ trap_dispatch(struct trapframe *tf) {
     case IRQ_OFFSET + IRQ_KBD:
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
-        if (c == "0"){
+        if (c == '0'){
             asm volatile (
                 "int %0 \n"
                 "movl %%ebp, %%esp \n"
@@ -180,7 +180,7 @@ trap_dispatch(struct trapframe *tf) {
             );
             print_trapframe(tf);    
         }
-        else if(c == "3"){
+        else if(c == '3'){
             asm volatile (
                 "sub $0x8, %%esp \n"
                 "int %0 \n"
