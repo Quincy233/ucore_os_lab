@@ -172,22 +172,19 @@ trap_dispatch(struct trapframe *tf) {
         c = cons_getc();
         cprintf("kbd [%03d] %c\n", c, c);
         if (c == '0'){
-            asm volatile (
-                "int %0 \n"
-                "movl %%ebp, %%esp \n"
-                : 
-                : "i"(T_SWITCH_TOK)
-            );
-            print_trapframe(tf);    
+            if (tf->tf_cs != KERNEL_CS) {
+                tf->tf_cs = KERNEL_CS;
+                tf->tf_ds = tf->tf_ss = tf->tf_es = KERNEL_DS;
+                tf->tf_eflags &= ~FL_IOPL_MASK;
+            }
+            print_trapframe(tf);  
         }
         else if(c == '3'){
-            asm volatile (
-                "sub $0x8, %%esp \n"
-                "int %0 \n"
-                "movl %%ebp, %%esp"
-                : 
-                : "i"(T_SWITCH_TOU)
-            );
+            if (tf->tf_cs != USER_CS) {
+                tf->tf_cs = USER_CS;
+                tf->tf_ds = tf->tf_ss = tf->tf_es = USER_DS;
+                tf->tf_eflags |= FL_IOPL_MASK;
+            }
             print_trapframe(tf);
         }
         break;
